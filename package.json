@@ -1,0 +1,28 @@
+{
+	"name": "book-app",
+	"version": "1.0.0",
+	"description": "Book app",
+	"main": "app.js",
+	"scripts": {
+		"start": "live-server",
+		"build": "rollup",
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/yuryruban/book-app.git"
+	},
+	"keywords": [
+		"book"
+	],
+	"author": "IR",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/yuryruban/book-app/issues"
+	},
+	"homepage": "https://github.com/yuryruban/book-app#readme",
+	"devDependencies": {
+		"eslint": "^8.53.0",
+		"rollup": "^4.4.0"
+	}
+}

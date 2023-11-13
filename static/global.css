@@ -1,3 +1,14 @@
-.new{
-	
+body{
+	font-family: 'Open Sans', sans-serif;
+		color: var(--black);
+}
+
+:root{
+	--black: #121212
+	--white: #fafafa
+}
+
+#root{
+	max-width: 880px;
+	margin: 0 auto;
 }

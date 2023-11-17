@@ -88,3 +88,18 @@
 	width: 50px;
 	flex: 0.05;
 }
+.card{
+	display: flex;
+	flex-direction: column;
+	border-radius: 8px;
+	overflow: hidden;
+	max-width: 300px;
+}
+.card__wrapper{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    text-align: center;
+}

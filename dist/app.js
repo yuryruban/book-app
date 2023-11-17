@@ -1064,7 +1064,7 @@
 			super();
 			this.state = state;
 		}
-
+	 
 		search(){
 			const value = this.el.querySelector('input').value;
 			this.state.searchQuery = value;
@@ -1096,9 +1096,94 @@
 		}
 	}
 
+	class Card extends DivComponent{
+
+		constructor(appState, cardState){
+			super();
+			this.appState = appState;
+			this.cardState = cardState;
+		}
+
+		#addToFavorites(){
+			this.appState.favorites.push(this.cardState);
+		}
+
+		#deleteFromFavorites(){
+			this.appState.favorites = this.appState.favorites.filter(b=>b.key!== this.cardState.key);
+		}
+
+		render(){
+			const existInFav = this.appState.favorites.find(b=>b.key  === this.cardState.key);
+			this.el.classList.add('card');
+			this.el.innerHTML = `
+			<div class="card__image">
+				<img src="https://covers.openlibrary.org/b/olid/${this.cardState.cover_edition_key}-M.jpg" alt="Cover" />
+			</div>
+			<div class="card__info>
+				<div class="card__tag">
+					${this.cardState.subject ? this.cardState.subject[0] : 'Не задано'}
+				</div>
+				<div class="card__name">
+					${this.cardState.title}
+				</div>
+				<div class="card__author">
+					${this.cardState.author_name ? this.cardState.author_name[0] : 'Не задано'}
+				</div>
+				<div class="card__footer">
+					<button class="button_add ${existInFav ? 'button__active':''}">
+							${existInFav ? 'Удалить' : 'Добавить' }
+					</button>
+				</div>
+			</div>
+		`;
+
+			if(existInFav){
+				this.el
+				.querySelector('button')
+				.addEventListener('click', this.#deleteFromFavorites.bind(this));
+				console.log(this.appState.favorites);
+			}else {
+				this.el.querySelector('button').addEventListener('click', this.#addToFavorites.bind(this));
+				console.log(this.appState.favorites);
+			}
+
+			return this.el
+		}
+
+	}
+
+	class Loader extends DivComponent{
+
+		constructor(appState, state){
+			super();
+			this.appState = appState;
+			this.state = state;
+		}
+
+		render(){
+			if(this.state.loading && this.state.list.length==0){
+				this.el.innerHTML = `
+				<h1>Loading....</h1>
+			`;
+				return this.el
+			}
+			this.el.innerHTML = `
+			<h1>Найдено книг – ${this.state.numFound} </h1>
+		`;
+			const cardList = document.createElement('div');
+			cardList.classList.add('card__wrapper');
+			for(const card of this.state.list){
+				cardList.append(new Card(this.appState, card).render());
+			}
+			this.el.append(cardList);
+			return this.el
+		}
+	}
+
 	class MainView extends AbstractView{
 		state = {
 			list: [],
+			numFound: 0,
 			loading: false,
 			searchQuery: undefined,
 			offset: 0
@@ -1113,10 +1198,28 @@
 			this.setTitle('Поиск книг');
 		}
 
+		destroy() {
+			onChange.unsubscribe(this.appState);
+			onChange.unsubscribe(this.state);
+		}
+
 		appStateHook(path){
-			console.log(path);
 			if(path === 'favorites'){
-				console.log(path);
+				this.render();
+			}
+		}
+
+		async stateHook(path){
+			if(path === 'searchQuery'){
+				this.state.loading = true;
+				const data = await this.loadList(this.state.searchQuery, this.state.offset);
+				this.state.loading = false;
+				this.state.numFound = data.numFound;
+				this.state.list = data.docs;
+				console.log(data);
+			}
+			if (path === 'list' || path === 'loading') {
+				this.render();
 			}
 		}
 
@@ -1125,20 +1228,11 @@
 			return res.json()
 		}
 
-		async stateHook(path){
-			console.log(path);
-			if(path === 'searchQuery'){
-				this.state.loading = true;
-				const data = await this.loadList(this.state.searchQuery, this.state.offset);
-				this.state.loading = true;
-				console.log(data);
-				this.state.list = data.docs;
-			}
-		}
 
 		render(){
 			const main = document.createElement('div');
 			main.append(new Search(this.state).render());
+			main.append(new Loader(this.appState, this.state).render());
 			this.app.innerHTML = '';
 			this.app.append(main);
 			this.renderHeader();
